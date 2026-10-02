@@ -13,8 +13,14 @@
 ## 파일 구조 (sample)
 
 ```
+├── archive/
 ├── data/
-│   └── README.md
+│   └── DATASET.md
+├── figure/
+│   ├── 01_EDA.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   └── 03_modeling.ipynb
+├── Legacy/
 ├── notebooks/
 │   ├── 01_EDA.ipynb
 │   ├── 02_feature_engineering.ipynb
@@ -29,7 +35,7 @@
 ├── requirements.txt
 └── README.md
 ```
-
+- `figure/` : EDA graph로 사용함
 - `data/` : MIT-Stanford 배터리 데이터셋 설명 및 배치 구성 안내 문서
 - `notebooks/` :
   - `01_EDA.ipynb` : 수명 분포, 열화 곡선, $\Delta Q(V)$, C-rate 및 다중공선성 분석
@@ -46,7 +52,7 @@
 ## 환경 설정 (sample)
 
 ```bash
-git clone https://github.com/팀명/ess-battery-project
+git clone https://github.com/leeji1234/ess-battery-project
 cd ess-battery-project
 pip install -r requirements.txt
 
@@ -204,10 +210,10 @@ EDA에서 규명된 물리·전기화학적 열화 신호를 체계화하여 3�
 - 원인 가설 및 개선 방향
   - **원인 가설 1 (훈련 데이터 도메인 부재 및 선형 외삽 오류)** :
     - 학습용 Batch 1의 최소 수명은 **513회**로, 500회 미만 단수명 셀 데이터가 훈련 세트에 **단 1개도 존재하지 않았음**.
-    - 이로 인해 Batch 1으로만 학습된 선형 회귀 모델(ElasticNet)은 390~450회 미학습 영역에 대해 무리한 외삽(Extrapolation)을 수행하여 600~760회로 과대평가하게 됨.
+    - 이로 인해 Batch 1으로만 학습된 선형 회귀 모델(ElasticNet)은 390~450회 미학습 영역에 대해 무리한 외삽을 수행하여 600~760회로 과대평가하게 됨.
   - **원인 가설 2 (배치 간 환경 편차 / Batch Effect & Concept Drift)** :
-    - 원논문(Severson et al.)의 9.1% MAPE는 Batch 1과 Batch 2를 결합한 전체 풀에서 다양한 수명 구간의 셀들을 균일하게 샘플링(Train/Test 층화 분할)하여 달성한 수치임.
-    - 반면 Batch 1(2017년 5월 실험, 513~1,189회)과 Batch 2(2018년 2월 실험, 392~1,064회)는 제조 로트, 챔버 환경, 장시간 일시 중지(pause) 등 미세한 공정 차이가 존재하여, 배치 간 일반화 저하(Gap Valid-Test: +30.5%)가 극명하게 발생함.
+    - 원논문의 9.1% MAPE는 Batch 1과 Batch 2를 결합한 전체 풀에서 다양한 수명 구간의 셀들을 균일하게 샘플링(Train/Test 층화 분할)하여 달성한 수치임.
+    - 반면 Batch 1과 Batch 2는 제조 로트, 챔버 환경, 장시간 일시 중지(pause) 등 미세한 공정 차이가 존재하여, 배치 간 일반화 저하가 극명하게 발생함.
   - **개선 방향** :
     - 1) **Train 데이터 다양화 (도메인 확장)**: 원논문과 같이 Batch 1과 Batch 2의 프로토콜 및 수명 구간을 층화 샘플링하여 400회대 단수명 셀을 Train Set에 포함.
     - 2) **비선형 트리/하이브리드 모델 활용**: 외삽 위험이 큰 선형 모델 대신 경계를 보수적으로 제한하는 Random Forest 또는 구간별 분할(Piecewise) 회귀 모델 도입.
@@ -231,12 +237,21 @@ EDA에서 규명된 물리·전기화학적 열화 신호를 체계화하여 3�
     - 1) *부분 충·방전 전압 세그먼트 복원 기술*: 부분 방전(예: SOC 80% $\to$ 20%) 구간만으로 전체 $\Delta Q(V)$ 형상을 추정하는 가상 전압 곡선 재구성 알고리즘 개발.
     - 2) *계절별 온도 보상 및 전이 학습(Transfer Learning)*: 현장 ESS 챔버의 사계절 외기 온도 변동과 노후화에 대응할 수 있도록 물리 기반(Physics-informed) 보정 모델 및 도메인 적응(Domain Adaptation) 기법 적용.
 
-## 참고문헌
+## Model의 한계
 
+- 왜 이론을 바탕으로 선정한 ElasticNet in Lv3에서 미흡한 MAPE가 도출되었나?
+  - 학습 데이터에서는 단수명 set이 나타나지 않았으나, test set에서는 단수명 set이 다수 존재하기 때문에 선형 모델의 수식 y = wx + b의 가중치로 무리하게 선형으로 연장하려다 오차율이 매우 늘어남
+  - RandomForest의 경우는 piecewise한 구간 분할을 기반으로 트리의 예측 값이 타겟 값들에서 bound되어 있으므로 무리하게 선형으로 연장하지는 않는다.
+  - 비선형 Knee point : 배터리의 열화가 knee point를 기점으로 기울기가 변하므로 오히려 선형으로 하기에 우려가 있다.
+  - lv3의 문제 : 배터리 데이터의 수가 적기 때문에 오히려 변수가 많아지면 결과가 안좋아짐
+- 그럼에도 불구하고 ElasticNet을 사용한 이유
+  - 원논문 참고 : 논문에서 사용한 모델이 ElasticNet이라, 이상적인 Model일 것이라 생각했으나 애초에 data의 분포 부터 달랐기 때문에 결과도 좋지는 않았다.
+  - 물리적 해석력 : 계산에 따라 ESS 교체 주기가 정해졌을 때 잘못되면 화재 등의 위험이 존재하는데, 이는 가중치를 정할 수 있는 선형 모델에 더 이점을 가진다.
+  - 데이터의 문제 : train/valid의 역할을 하는 Batch1에서 보다 넓은 범위의 데이터를 더 많이 제공했다면 더 좋은 결과가 나올 수 있었다.
+
+
+## 참고문헌
 - Severson, K. A., Attia, P. M., Jin, N., Perkins, N., Jiang, B., Yang, Z., ... & Braatz, R. D. (2019). Data-driven prediction of battery cycle life before capacity degradation. *Nature Energy*, 4(5), 383-391.
-- Attia, P. M., Grover, A., Jin, N., Severson, K. A., Markov, T. M., Liao, Y. H., ... & Chueh, W. C. (2020). Closed-loop optimization of fast-charging protocols for batteries with machine learning. *Nature*, 578(7795), 397-402.
 
 ## 팀 구성
-
-- 김영희 : EDA, 피처 엔지니어링, 모델 개발, 성능 평가(Batch2)
-- 박철수 : EDA, 피처 엔지니어링, 모델 개발, 성능 평가(Batch3)
+- 이정인

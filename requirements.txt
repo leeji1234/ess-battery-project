@@ -1,0 +1,16 @@
+# Core Data Analysis & Science
+numpy==2.4.6
+pandas==3.0.6
+scipy==1.17.1
+scikit-learn==1.9.1
+
+# Visualization
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# MATLAB & HDF5 File Loader
+mat73==0.65
+h5py==3.16.0
+
+# Jupyter Environment
+ipykernel==7.4.0

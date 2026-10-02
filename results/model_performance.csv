@@ -1,0 +1,13 @@
+Feature_Set,Model,Train (Batch 1 CV),Valid (Batch 1 Hold-out),Test (Batch 2),Test RMSE (cycles),Gap (Train-Valid),Gap (Valid-Test),Gap (Target-Test)
+Level 1 (Variance),"ElasticNet (alpha=0.01, l1=0.5)",9.71,17.16,36.69,188.1,7.46,19.52,27.59
+Level 1 (Variance),Ridge (alpha=1.0),9.63,18.64,35.42,182.6,9.02,16.78,26.32
+Level 1 (Variance),"RandomForest (depth=3, n=50)",6.93,6.41,28.57,157.9,-0.52,22.16,19.47
+Level 1 (Variance),"GradientBoosting (depth=3, n=50)",7.64,7.22,31.86,173.9,-0.42,24.64,22.76
+Level 2 (Discharge),"ElasticNet (alpha=0.01, l1=0.5)",6.11,8.26,39.5,219.2,2.15,31.24,30.4
+Level 2 (Discharge),Ridge (alpha=1.0),6.01,9.28,43.98,249.5,3.27,34.7,34.88
+Level 2 (Discharge),"RandomForest (depth=3, n=50)",7.61,6.33,32.64,175.0,-1.27,26.31,23.54
+Level 2 (Discharge),"GradientBoosting (depth=3, n=50)",7.45,8.37,39.84,203.2,0.92,31.47,30.74
+Level 3 (Full),"ElasticNet (alpha=0.01, l1=0.5)",6.29,9.07,39.59,216.5,2.78,30.53,30.49
+Level 3 (Full),Ridge (alpha=1.0),6.42,10.39,43.88,242.1,3.96,33.49,34.78
+Level 3 (Full),"RandomForest (depth=3, n=50)",7.53,7.35,32.49,170.1,-0.18,25.14,23.39
+Level 3 (Full),"GradientBoosting (depth=3, n=50)",7.03,7.19,37.34,191.0,0.16,30.15,28.24
